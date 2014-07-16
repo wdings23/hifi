@@ -1665,7 +1665,7 @@ void Application::init() {
     _sharedVoxelSystemViewFrustum.setOrientation(glm::quat());
     _sharedVoxelSystemViewFrustum.calculate();
     _sharedVoxelSystem.setViewFrustum(&_sharedVoxelSystemViewFrustum);
-
+    
     VoxelTreeElement::removeUpdateHook(&_sharedVoxelSystem);
 
     // Cleanup of the original shared tree
@@ -1725,7 +1725,7 @@ void Application::init() {
 
     // Set up VoxelSystem after loading preferences so we can get the desired max voxel count
     _voxels.setMaxVoxels(Menu::getInstance()->getMaxVoxels());
-    _voxels.setUseVoxelShader(false);
+    _voxels.setUseVoxelShader(true);
     _voxels.setVoxelsAsPoints(false);
     _voxels.setDisableFastVoxelPipeline(false);
     _voxels.init();

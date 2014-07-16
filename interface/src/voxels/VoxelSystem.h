@@ -40,6 +40,13 @@ struct VoxelShaderVBOData
     unsigned char r,g,b; // color
 };
 
+struct VoxelInstanceShaderVBOData
+{
+    float x, y, z, w;
+    float sx, sy, sz, sw;
+    float red, green, blue, alpha;
+};
+
 
 class VoxelSystem : public NodeData, public OctreeElementDeleteHook, public OctreeElementUpdateHook {
     Q_OBJECT
@@ -197,6 +204,12 @@ private:
     bool _voxelsAsPoints;
     bool _voxelShaderModeWhenVoxelsAsPointsEnabled;
 
+    //GLuint _voxelModelID;
+    GLuint _voxelInfoID;
+    //GLuint _voxelModelIndicesID;
+    VoxelInstanceShaderVBOData* _outputInstanceVoxelData;
+    
+    
     GLuint _vboVoxelsID; /// when using voxel shader, we'll use this VBO
     GLuint _vboVoxelsIndicesID;  /// when using voxel shader, we'll use this VBO for our indexes
     VoxelShaderVBOData* _writeVoxelShaderData;
@@ -278,6 +291,10 @@ private:
     bool _drawHaze;
     float _farHazeDistance;
     glm::vec3 _hazeColor;
+    
+    void createCube();
+    ProgramObject _voxelInstanceProgram;
+
 };
 
 #endif // hifi_VoxelSystem_h
