@@ -292,9 +292,17 @@ private:
     float _farHazeDistance;
     glm::vec3 _hazeColor;
     
+    // draw voxel instancing
     void createCube();
+    
+    // shader and attribute locations
     ProgramObject _voxelInstanceProgram;
-
+    int _translationShaderAttributeLocation;
+    int _scaleShaderAttributeLocation;
+    int _colorShaderAttributeLocation;
+    int _positionShaderAttributeLocation;
+    int _normalShaderAttributeLocation;
+    int _uvShaderAttributeLocation;
 };
 
 #endif // hifi_VoxelSystem_h

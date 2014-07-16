@@ -434,14 +434,22 @@ void VoxelSystem::initVoxelMemory() {
         int voxelInfoSize = _maxVoxels * sizeof(VoxelInstanceShaderVBOData);
         _outputInstanceVoxelData = new VoxelInstanceShaderVBOData[_maxVoxels];
         memset(_outputInstanceVoxelData, 0, voxelInfoSize);
-
+        
+        // voxel instance shader
         _voxelInstanceProgram.addShaderFromSourceFile(QGLShader::Vertex, Application::resourcesPath() + "shaders/voxel_instance.vert");
         _voxelInstanceProgram.addShaderFromSourceFile(QGLShader::Fragment, Application::resourcesPath() + "shaders/voxel_instance.frag");
         _voxelInstanceProgram.link();
         
-        //ProgramObject& voxelInstanceShader = Application::getInstance()->getVoxelInstanceProgram();
         _voxelInstanceProgram.bind();
 
+        // shader attributes
+        _translationShaderAttributeLocation = _voxelInstanceProgram.attributeLocation("translation");
+        _scaleShaderAttributeLocation = _voxelInstanceProgram.attributeLocation("scale");
+        _colorShaderAttributeLocation = _voxelInstanceProgram.attributeLocation("color");
+        _positionShaderAttributeLocation = _voxelInstanceProgram.attributeLocation("position");
+        _normalShaderAttributeLocation = _voxelInstanceProgram.attributeLocation("normal");
+        _uvShaderAttributeLocation = _voxelInstanceProgram.attributeLocation("uv");
+        
         // voxel info buffer
         glGenBuffers(1, &_voxelInfoID);
         glBindBuffer(GL_ARRAY_BUFFER, _voxelInfoID);
@@ -1436,10 +1444,6 @@ void VoxelSystem::render() {
         PerformanceWarning warn(showWarnings,"render().. _useVoxelShader openGL..");
         
         if (_voxelModelID) {
-            
-//            ProgramObject& voxelInstanceShader = Application::getInstance()->getVoxelInstanceProgram();
-//            voxelInstanceShader.bind();
-
             _voxelInstanceProgram.bind();
             
             size_t strideSize = sizeof(GLfloat) * 4;
@@ -1449,22 +1453,19 @@ void VoxelSystem::render() {
             glEnableClientState(GL_VERTEX_ARRAY);
 
             // translation
-            int translationAttributeLocation = _voxelInstanceProgram.attributeLocation("translation");
-            glVertexAttribPointer(translationAttributeLocation, 4, GL_FLOAT, GL_FALSE, sizeof(VoxelInstanceShaderVBOData), 0);
-            glEnableVertexAttribArray(translationAttributeLocation);
-            glVertexAttribDivisorARB(translationAttributeLocation, 1);
+            glVertexAttribPointer(_translationShaderAttributeLocation, 4, GL_FLOAT, GL_FALSE, sizeof(VoxelInstanceShaderVBOData), 0);
+            glEnableVertexAttribArray(_translationShaderAttributeLocation);
+            glVertexAttribDivisorARB(_translationShaderAttributeLocation, 1);
             
             // scale
-            int scaleAttributeLocation = _voxelInstanceProgram.attributeLocation("scale");
-            glVertexAttribPointer(scaleAttributeLocation, 4, GL_FLOAT, GL_FALSE, sizeof(VoxelInstanceShaderVBOData), (void *)strideSize);
-            glEnableVertexAttribArray(scaleAttributeLocation);
-            glVertexAttribDivisorARB(scaleAttributeLocation, 1);
+            glVertexAttribPointer(_scaleShaderAttributeLocation, 4, GL_FLOAT, GL_FALSE, sizeof(VoxelInstanceShaderVBOData), (void *)strideSize);
+            glEnableVertexAttribArray(_scaleShaderAttributeLocation);
+            glVertexAttribDivisorARB(_scaleShaderAttributeLocation, 1);
             
             // color
-            int colorAttributeLocation = _voxelInstanceProgram.attributeLocation("color");
-            glVertexAttribPointer(colorAttributeLocation, 4, GL_FLOAT, GL_FALSE, sizeof(VoxelInstanceShaderVBOData), (void *)(strideSize * 2));
-            glEnableVertexAttribArray(colorAttributeLocation);
-            glVertexAttribDivisorARB(colorAttributeLocation, 1);
+            glVertexAttribPointer(_colorShaderAttributeLocation, 4, GL_FLOAT, GL_FALSE, sizeof(VoxelInstanceShaderVBOData), (void *)(strideSize * 2));
+            glEnableVertexAttribArray(_colorShaderAttributeLocation);
+            glVertexAttribDivisorARB(_colorShaderAttributeLocation, 1);
             
             // voxel model
             glBindBuffer(GL_ARRAY_BUFFER, _voxelModelID);
@@ -1473,19 +1474,16 @@ void VoxelSystem::render() {
             strideSize = sizeof(float) * 4 * 2 + sizeof(float) * 2;
             
             // position
-            int positionAttributeLocation = _voxelInstanceProgram.attributeLocation("position");
-            glVertexAttribPointer(positionAttributeLocation, 4, GL_FLOAT, GL_FALSE, strideSize, 0);
-            glEnableVertexAttribArray(positionAttributeLocation);
+            glVertexAttribPointer(_positionShaderAttributeLocation, 4, GL_FLOAT, GL_FALSE, strideSize, 0);
+            glEnableVertexAttribArray(_positionShaderAttributeLocation);
             
             // normal
-            int normalAttributeLocation = _voxelInstanceProgram.attributeLocation("normal");
-            glVertexAttribPointer(normalAttributeLocation, 4, GL_FLOAT, GL_FALSE, strideSize, (void *)(sizeof(float) * 4));
-            glEnableVertexAttribArray(normalAttributeLocation);
+            glVertexAttribPointer(_normalShaderAttributeLocation, 4, GL_FLOAT, GL_FALSE, strideSize, (void *)(sizeof(float) * 4));
+            glEnableVertexAttribArray(_normalShaderAttributeLocation);
             
             // uv
-            int uvAttributeLocation = _voxelInstanceProgram.attributeLocation("uv");
-            glVertexAttribPointer(uvAttributeLocation, 4, GL_FLOAT, GL_FALSE, strideSize, (void *)(sizeof(float) * 4 * 2));
-            glEnableVertexAttribArray(uvAttributeLocation);
+            glVertexAttribPointer(_uvShaderAttributeLocation, 4, GL_FLOAT, GL_FALSE, strideSize, (void *)(sizeof(float) * 4 * 2));
+            glEnableVertexAttribArray(_uvShaderAttributeLocation);
             
 //GLfloat modelViewMatrixFloatVal[16];
 //glGetFloatv(GL_MODELVIEW_MATRIX, modelViewMatrixFloatVal);
@@ -1505,23 +1503,23 @@ void VoxelSystem::render() {
 //projected.z /= projected.w;
             
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _voxelModelIndicesID);
-            glDrawElementsInstanced(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0, _voxelsInReadArrays); //_voxelsInReadArrays);
+            glDrawElementsInstanced(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0, _voxelsInReadArrays);
             
             glDisableClientState(GL_VERTEX_ARRAY);
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
             
-            glVertexAttribDivisorARB(translationAttributeLocation, 0);
-            glVertexAttribDivisorARB(scaleAttributeLocation, 0);
-            glVertexAttribDivisorARB(colorAttributeLocation, 0);
+            glVertexAttribDivisorARB(_translationShaderAttributeLocation, 0);
+            glVertexAttribDivisorARB(_scaleShaderAttributeLocation, 0);
+            glVertexAttribDivisorARB(_colorShaderAttributeLocation, 0);
             
-            glDisableVertexAttribArray(translationAttributeLocation);
-            glDisableVertexAttribArray(scaleAttributeLocation);
-            glDisableVertexAttribArray(colorAttributeLocation);
+            glDisableVertexAttribArray(_translationShaderAttributeLocation);
+            glDisableVertexAttribArray(_scaleShaderAttributeLocation);
+            glDisableVertexAttribArray(_colorShaderAttributeLocation);
             
-            glDisableVertexAttribArray(positionAttributeLocation);
-            glDisableVertexAttribArray(normalAttributeLocation);
-            glDisableVertexAttribArray(uvAttributeLocation);
+            glDisableVertexAttribArray(_positionShaderAttributeLocation);
+            glDisableVertexAttribArray(_normalShaderAttributeLocation);
+            glDisableVertexAttribArray(_uvShaderAttributeLocation);
             
             _voxelInstanceProgram.release();
         }
